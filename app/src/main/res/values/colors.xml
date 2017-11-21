@@ -8,5 +8,7 @@
     <!-- warning background colour to let us know if a guest has been waiting too long -->
     <color name="warningColourHigh">#ef5350</color>
     <!-- default background colour for one guest -->
-    <color name="warningColourLow">#66bb6a</color>
+    <color name="warningColourLow">#ffebee</color>
+    <!-- medium level warning background colour -->
+    <color name="warningColourMedium">#ef9a9a</color>
 </resources>

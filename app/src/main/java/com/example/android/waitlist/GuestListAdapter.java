@@ -2,13 +2,18 @@ package com.example.android.waitlist;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.android.waitlist.data.WaitlistContract;
+
+import java.util.Calendar;
+import java.util.Date;
 
 
 public class GuestListAdapter extends RecyclerView.Adapter<GuestListAdapter.GuestViewHolder> {
@@ -17,12 +22,15 @@ public class GuestListAdapter extends RecyclerView.Adapter<GuestListAdapter.Gues
     private Cursor mCursor;
     private Context mContext;
 
+    private long timeWhenBooked;
+    private static final long TOO_LONG = 1000 * 60; // 1 minutes in milliseconds
+
     /**
      * Constructor using the context and the db cursor
      * @param context the calling context/activity
      * @param cursor the db cursor with waitlist data to display
      */
-    public GuestListAdapter(Context context, Cursor cursor) {
+    GuestListAdapter(Context context, Cursor cursor) {
         this.mContext = context;
         this.mCursor = cursor;
     }
@@ -44,6 +52,8 @@ public class GuestListAdapter extends RecyclerView.Adapter<GuestListAdapter.Gues
         // Update the view holder with the information needed to display
         String name = mCursor.getString(mCursor.getColumnIndex(WaitlistContract.WaitlistEntry.COLUMN_GUEST_NAME));
         int partySize = mCursor.getInt(mCursor.getColumnIndex(WaitlistContract.WaitlistEntry.COLUMN_PARTY_SIZE));
+        timeWhenBooked = mCursor.getLong(mCursor.getColumnIndex(WaitlistContract.WaitlistEntry.COLUMN_TIMESTAMP));
+
 
         // COMPLETED (6) Retrieve the id from the cursor and
         long id = mCursor.getLong(mCursor.getColumnIndex(WaitlistContract.WaitlistEntry._ID));
@@ -54,8 +64,11 @@ public class GuestListAdapter extends RecyclerView.Adapter<GuestListAdapter.Gues
         holder.partySizeTextView.setText(String.valueOf(partySize));
         // COMPLETED (7) Set the tag of the itemview in the holder to the id
         holder.itemView.setTag(id);
-    }
 
+        // Check how long the guest has been waiting
+        checkWaitingTime(holder);
+
+    }
 
     @Override
     public int getItemCount() {
@@ -68,7 +81,7 @@ public class GuestListAdapter extends RecyclerView.Adapter<GuestListAdapter.Gues
      *
      * @param newCursor the new cursor that will replace the existing one
      */
-    public void swapCursor(Cursor newCursor) {
+    void swapCursor(Cursor newCursor) {
         // Always close the previous mCursor first
         if (mCursor != null) mCursor.close();
         mCursor = newCursor;
@@ -87,6 +100,8 @@ public class GuestListAdapter extends RecyclerView.Adapter<GuestListAdapter.Gues
         TextView nameTextView;
         // Will display the party size number
         TextView partySizeTextView;
+        // Layout for single guest
+        LinearLayout singleGuest;
 
 
         /**
@@ -96,11 +111,45 @@ public class GuestListAdapter extends RecyclerView.Adapter<GuestListAdapter.Gues
          * @param itemView The View that you inflated in
          *                 {@link GuestListAdapter#onCreateViewHolder(ViewGroup, int)}
          */
-        public GuestViewHolder(View itemView) {
+        GuestViewHolder(View itemView) {
             super(itemView);
             nameTextView = (TextView) itemView.findViewById(R.id.name_text_view);
             partySizeTextView = (TextView) itemView.findViewById(R.id.party_size_text_view);
+            singleGuest = (LinearLayout) itemView.findViewById(R.id.single_guest);
+
         }
 
+    }
+
+    private void checkWaitingTime(GuestViewHolder holder) {
+
+        long currentTime = getTime();
+        long bookedTime = timeWhenBooked;
+        long timeSinceBooked = currentTime - bookedTime;
+        long mediumWaitingTime = TOO_LONG / 2;
+
+        if (timeSinceBooked < TOO_LONG){
+            // the guest was just added, or was added a short time ago. Don't worry about it.
+            holder.singleGuest.setBackgroundColor(ContextCompat.getColor(mContext, R.color.warningColourLow));
+        }
+
+        if (timeSinceBooked >= mediumWaitingTime && timeSinceBooked < TOO_LONG){
+            // the guest has been waiting for awhile, but it hasn't been too long. They do need to be seated soon though
+            holder.singleGuest.setBackgroundColor(ContextCompat.getColor(mContext, R.color.warningColourMedium));
+        }
+        
+        if (timeSinceBooked >= TOO_LONG){
+            // the guest has been waiting a very long time. Be honest, you forgot about them, didn't you?
+            holder.singleGuest.setBackgroundColor(ContextCompat.getColor(mContext, R.color.warningColourHigh));
+        }
+    }
+
+    private long getTime() {
+
+        // Create a new calendar
+
+        Date time = Calendar.getInstance().getTime();
+
+        return time.getTime();
     }
 }

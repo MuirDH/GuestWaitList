@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,7 +11,6 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 
 import com.example.android.waitlist.data.WaitlistContract;
 import com.example.android.waitlist.data.WaitlistDbHelper;
@@ -29,8 +27,6 @@ public class MainActivity extends AppCompatActivity {
     private final static String LOG_TAG = MainActivity.class.getSimpleName();
 
     long timeWhenBooked;
-
-    private static final long TOO_LONG = 5000; //1000 * 60 * 1; // 1 minutes in milliseconds
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,23 +87,6 @@ public class MainActivity extends AppCompatActivity {
         }).attachToRecyclerView(waitlistRecyclerView);
     }
 
-    private void checkTimeWaiting() {
-        long currentTime = getTime();
-        long bookedTime = timeWhenBooked;
-        long timeSinceBooked = currentTime - bookedTime;
-
-        LinearLayout mSingleGuestView = new LinearLayout(this);
-        View root = mSingleGuestView.getRootView();
-
-        if (timeSinceBooked < TOO_LONG) {
-            // guest hasn't been waiting long, no need to worry
-            root.setBackgroundColor(ContextCompat.getColor(this, R.color.warningColourLow));
-        } else if (timeSinceBooked >= TOO_LONG) {
-            // it's been awhile since the guest has arrived, they really should have a table by now
-            root.setBackgroundColor(ContextCompat.getColor(this, R.color.warningColourHigh));
-        }
-    }
-
     /**
      * This method is called when user clicks on the Add to waitlist button
      *
@@ -148,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private Cursor getAllGuests() {
 
-        Cursor query = mDb.query(
+        return mDb.query(
                 WaitlistContract.WaitlistEntry.TABLE_NAME,
                 null,
                 null,
@@ -157,10 +136,6 @@ public class MainActivity extends AppCompatActivity {
                 null,
                 WaitlistContract.WaitlistEntry.COLUMN_TIMESTAMP
         );
-
-        checkTimeWaiting();
-
-        return query;
     }
 
     /**
@@ -168,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param name           Guest's name
      * @param partySize      Number in party
-     * @param timeWhenBooked
+     * @param timeWhenBooked Time when party arrived
      * @return id of new record added
      */
     private long addNewGuest(String name, int partySize, long timeWhenBooked) {
@@ -198,15 +173,13 @@ public class MainActivity extends AppCompatActivity {
                 WaitlistContract.WaitlistEntry._ID + "=" + id, null) > 0;
     }
 
-
     public long getTime() {
 
         // Create a new calendar
 
         Date time = Calendar.getInstance().getTime();
-        long startTime = time.getTime();
 
-        return startTime;
+        return time.getTime();
     }
 
 }
