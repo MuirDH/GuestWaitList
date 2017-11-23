@@ -5,4 +5,5 @@
     <string name="add_button_text">ADD</string>
     <string name="default_guest_name">[Guest name]</string>
     <string name="default_party_size">\?</string>
+    <string name="example_phone_number">+441234567890</string>
 </resources>

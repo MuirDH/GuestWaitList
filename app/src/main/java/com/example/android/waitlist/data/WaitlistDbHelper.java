@@ -13,7 +13,7 @@ public class WaitlistDbHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "waitlist.db";
 
     // If you change the database schema, you must increment the database version
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Constructor
     public WaitlistDbHelper(Context context) {
@@ -28,19 +28,26 @@ public class WaitlistDbHelper extends SQLiteOpenHelper {
                 WaitlistEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 WaitlistEntry.COLUMN_GUEST_NAME + " TEXT NOT NULL, " +
                 WaitlistEntry.COLUMN_PARTY_SIZE + " INTEGER NOT NULL, " +
-                WaitlistEntry.COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                WaitlistEntry.COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                WaitlistEntry.COLUMN_MOBILE_NUMBER + " TEXT" +
                 "); ";
 
         sqLiteDatabase.execSQL(SQL_CREATE_WAITLIST_TABLE);
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        // For now simply drop the table and create a new one. This means if you change the
-        // DATABASE_VERSION the table will be dropped.
-        // In a production app, this method might be modified to ALTER the table
-        // instead of dropping it, so that existing data is not deleted.
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + WaitlistEntry.TABLE_NAME);
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
+
+        // change onUpgrade() so the Database updates for all users
+        switch (oldVersion) {
+            case 1:
+                String SQL_CREATE_WAITLIST_TABLE = "ALTER TABLE "
+                        + WaitlistEntry.TABLE_NAME
+                        + " ADD COLUMN "
+                        + WaitlistEntry.COLUMN_MOBILE_NUMBER
+                        + " TEXT";
+                sqLiteDatabase.execSQL(SQL_CREATE_WAITLIST_TABLE);
+        }
         onCreate(sqLiteDatabase);
     }
 }

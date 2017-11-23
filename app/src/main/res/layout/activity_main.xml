@@ -32,6 +32,18 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Headline" />
     </LinearLayout>
 
+    <!-- edit text field to add the guest's mobile number -->
+    <EditText
+        android:id="@+id/person_mobile_number_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:hint="@string/example_phone_number"
+        android:inputType="text"
+        android:maxLength="15"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+        tools:ignore="TextFields" />
 
     <Button
         android:id="@+id/add_to_waitlist_button"

@@ -23,7 +23,9 @@ public class GuestListAdapter extends RecyclerView.Adapter<GuestListAdapter.Gues
     private Context mContext;
 
     private long timeWhenBooked;
+    public String mobileNumber; // guest's mobile number
     private static final long TOO_LONG = 1000 * 60; // 1 minutes in milliseconds
+
 
     /**
      * Constructor using the context and the db cursor
@@ -52,6 +54,10 @@ public class GuestListAdapter extends RecyclerView.Adapter<GuestListAdapter.Gues
         // Update the view holder with the information needed to display
         String name = mCursor.getString(mCursor.getColumnIndex(WaitlistContract.WaitlistEntry.COLUMN_GUEST_NAME));
         int partySize = mCursor.getInt(mCursor.getColumnIndex(WaitlistContract.WaitlistEntry.COLUMN_PARTY_SIZE));
+
+        // mobile number and booked time are not displayed, but we need them here so that we can
+        // keep track of time waiting and the number for messaging
+        mobileNumber = mCursor.getString(mCursor.getColumnIndex(WaitlistContract.WaitlistEntry.COLUMN_MOBILE_NUMBER));
         timeWhenBooked = mCursor.getLong(mCursor.getColumnIndex(WaitlistContract.WaitlistEntry.COLUMN_TIMESTAMP));
 
 
@@ -67,6 +73,8 @@ public class GuestListAdapter extends RecyclerView.Adapter<GuestListAdapter.Gues
 
         // Check how long the guest has been waiting
         checkWaitingTime(holder);
+
+        // get the id of the guest in the second position in the list and send them a text
 
     }
 
@@ -104,6 +112,7 @@ public class GuestListAdapter extends RecyclerView.Adapter<GuestListAdapter.Gues
         LinearLayout singleGuest;
 
 
+
         /**
          * Constructor for our ViewHolder. Within this constructor, we get a reference to our
          * TextViews
@@ -128,17 +137,13 @@ public class GuestListAdapter extends RecyclerView.Adapter<GuestListAdapter.Gues
         long timeSinceBooked = currentTime - bookedTime;
         long mediumWaitingTime = TOO_LONG / 2;
 
-        if (timeSinceBooked < TOO_LONG){
+        if (timeSinceBooked < TOO_LONG && timeSinceBooked < mediumWaitingTime){
             // the guest was just added, or was added a short time ago. Don't worry about it.
             holder.singleGuest.setBackgroundColor(ContextCompat.getColor(mContext, R.color.warningColourLow));
-        }
-
-        if (timeSinceBooked >= mediumWaitingTime && timeSinceBooked < TOO_LONG){
+        } else if (timeSinceBooked >= mediumWaitingTime && timeSinceBooked < TOO_LONG){
             // the guest has been waiting for awhile, but it hasn't been too long. They do need to be seated soon though
             holder.singleGuest.setBackgroundColor(ContextCompat.getColor(mContext, R.color.warningColourMedium));
-        }
-        
-        if (timeSinceBooked >= TOO_LONG){
+        }else if (timeSinceBooked >= TOO_LONG && timeSinceBooked > mediumWaitingTime){
             // the guest has been waiting a very long time. Be honest, you forgot about them, didn't you?
             holder.singleGuest.setBackgroundColor(ContextCompat.getColor(mContext, R.color.warningColourHigh));
         }
