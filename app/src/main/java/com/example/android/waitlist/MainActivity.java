@@ -1,8 +1,10 @@
 package com.example.android.waitlist;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,9 +17,6 @@ import android.widget.Toast;
 
 import com.example.android.waitlist.data.WaitlistContract;
 import com.example.android.waitlist.data.WaitlistDbHelper;
-import com.twilio.Twilio;
-import com.twilio.rest.api.v2010.account.Message;
-import com.twilio.type.PhoneNumber;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -31,11 +30,8 @@ public class MainActivity extends AppCompatActivity {
     private EditText mNewNumberEditText;
     private final static String LOG_TAG = MainActivity.class.getSimpleName();
 
-    // Twilio SMS strings
-    private static final String ACCOUNT_SID = "[Twilio SID]";
-    private static final String AUTH_TOKEN = "[Twilio Auth Token]";
-
     long timeWhenBooked;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,34 +64,6 @@ public class MainActivity extends AppCompatActivity {
         // Link the adapter to the RecyclerView
         waitlistRecyclerView.setAdapter(mAdapter);
 
-        // set a custom ScrollListener to the RecyclerView
-        waitlistRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                // get the second item
-                if (linearLayoutManager.findFirstCompletelyVisibleItemPosition() == 1){
-
-                    String toNumber = WaitlistContract.WaitlistEntry.COLUMN_MOBILE_NUMBER;
-                    String fromNumber = "[Twilio number]";
-                    String textMessage = "You are now second in the waiting list. " +
-                            "Your host will be with you soon.";
-                    // initialise Twilio
-                    Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
-                    // Create a message with two phone numbers.
-                    // The first number is the "To", the second number is the "From"
-                    try {Message.creator(
-                            new PhoneNumber(toNumber),
-                            new PhoneNumber(fromNumber),
-                            textMessage
-                    ).create();
-                        Toast.makeText(MainActivity.this, textMessage, Toast.LENGTH_SHORT).show();
-                    }catch (Exception e){
-                        Log.e(LOG_TAG, "Unable to access Twilio services. Message not sent");
-                    }
-
-                }
-            }
-        });
 
         // COMPLETED (3) Create a new ItemTouchHelper with a SimpleCallback that handles both LEFT and RIGHT swipe directions
         // Create an item touch helper to handle swiping items off the list
@@ -125,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
             //COMPLETED (11) attach the ItemTouchHelper to the waitlistRecyclerView
         }).attachToRecyclerView(waitlistRecyclerView);
     }
+
 
     /**
      * This method is called when user clicks on the Add to waitlist button
@@ -225,4 +194,19 @@ public class MainActivity extends AppCompatActivity {
         return time.getTime();
     }
 
+    public void sendSMS(View view) {
+
+        Log.i("Send SMS", "");
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        String guestMobile = mAdapter.mobileNumber;
+        intent.setData(Uri.parse("smsto:" + guestMobile));
+        intent.putExtra("sms_body", "Your table is ready. Your host will seat you shortly.");
+
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+            Log.i("Finished sending SMS...", "");
+        } else Toast.makeText(MainActivity.this,
+                "SMS failed, please try again later.", Toast.LENGTH_SHORT).show();
+
+    }
 }

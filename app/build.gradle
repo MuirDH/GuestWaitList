@@ -35,7 +35,4 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:26.1.0'
     testCompile 'junit:junit:4.12'
 
-    // Twilio dependencies for SMS (text messages)
-    compile 'com.twilio.sdk:twilio:7.11.0'
-
 }
